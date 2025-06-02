@@ -438,7 +438,7 @@
             </div>
         </div>
 
-        
+
 
         <!-- Bootstrap core JavaScript-->
         <script src="vendor/jquery/jquery.min.js"></script>
@@ -457,7 +457,11 @@
         <script src="js/demo/chart-area-demo.js"></script>
         <script src="js/demo/chart-pie-demo.js"></script>
 
-        
+        <script>
+            fetch("sessiontoken")
+                    .then(res => res.text())
+                    .then(token => console.log("TOKEN JWT:", token));
+        </script>
     </body>
 
 </html>

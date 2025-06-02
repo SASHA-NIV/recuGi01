@@ -357,7 +357,29 @@
                     <!-- Begin Page Content -->
                     <div class="container-fluid">
 
-                        
+                        <div class="container mt-5">
+                            <div class="card shadow">
+                                <div class="card-body">
+                                    <h4 class="card-title">Cambiar Contraseña</h4>
+                                    <form id="cambiarClaveForm">
+                                        <div class="form-group">
+                                            <label>Clave actual</label>
+                                            <input type="password" id="claveActual" class="form-control" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Nueva clave</label>
+                                            <input type="password" id="nuevaClave" class="form-control" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Confirmar nueva clave</label>
+                                            <input type="password" id="confirmarClave" class="form-control" required>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary mt-3">Cambiar Clave</button>
+                                    </form>
+                                    <div id="msg" class="mt-3 text-danger"></div>
+                                </div>
+                            </div>
+                        </div>
 
                     </div>
                     <!-- /.container-fluid -->
@@ -423,8 +445,53 @@
         <script src="js/demo/chart-area-demo.js"></script>
         <script src="js/demo/chart-pie-demo.js"></script>
 
-        
 
+        <script>
+            document.getElementById('cambiarClaveForm').addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                const actual = document.getElementById('claveActual').value;
+                const nueva = document.getElementById('nuevaClave').value;
+                const confirmar = document.getElementById('confirmarClave').value;
+                const msg = document.getElementById('msg');
+
+                if (nueva !== confirmar) {
+                    msg.textContent = "❌ La nueva clave y su confirmación no coinciden.";
+                    return;
+                }
+
+                fetch('cambiarclave', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: `actual=${encodeURIComponent(actual)}&nueva=${encodeURIComponent(nueva)}`
+                })
+
+                        .then(res => res.text())
+                        .then(texto => {
+                            if (typeof texto === 'string' && texto.startsWith("✅")) {
+                                msg.style.color = "green";
+                                msg.textContent = texto;
+
+                                // Redirigir después de éxito
+                                setTimeout(() => {
+                                    window.location.href = "index.html";
+                                }, 2000);
+                            } else {
+                                msg.textContent = texto;
+                            }
+                        })
+                        .catch(err => {
+                            console.error(err);
+                            msg.textContent = "❌ Error en el servidor.";
+                        });
+            });
+        </script>
+
+        <script>
+            fetch("sessiontoken")
+                    .then(res => res.text())
+                    .then(token => console.log("TOKEN JWT:", token));
+        </script>
     </body>
 
 </html>
