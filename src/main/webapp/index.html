@@ -11,15 +11,73 @@
 
         <div class="container">
 
-            
+            <div class="row justify-content-center">
+
+                <div class="col-xl-5 col-lg-6 col-md-9">
+                    <div class="card o-hidden border-0 shadow-lg my-5">
+                        <div class="card-body p-5">
+                            <!-- Formulario de Login -->
+                            <div class="text-center">
+                                <h1 class="h4 text-gray-900 mb-4">Iniciar Sesión</h1>
+                            </div>
+                            <form id="loginForm" class="user">
+                                <div class="form-group">
+                                    <input type="text" class="form-control form-control-user" id="dni" placeholder="DNI" required>
+                                </div>
+                                <div class="form-group">
+                                    <input type="password" class="form-control form-control-user" id="password" placeholder="Contraseña" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-user btn-block">
+                                    Ingresar
+                                </button>
+                            </form>
+                            <hr>
+                            <div id="loginError" class="text-danger text-center mt-2"></div>
+                        </div>
+                    </div>
+                </div>
 
 
-        </div>
+            </div>
 
-        <!-- Scripts de SB Admin 2 -->
-        <script src="vendor/jquery/jquery.min.js"></script>
-        <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-        <script src="js/sb-admin-2.min.js"></script>
-        
+            <!-- Scripts de SB Admin 2 -->
+            <script src="vendor/jquery/jquery.min.js"></script>
+            <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+            <script src="js/sb-admin-2.min.js"></script>
+
+
+            <script>
+                document.getElementById("loginForm").addEventListener("submit", function (e) {
+                    e.preventDefault();
+                    const dni = document.getElementById("dni").value.trim();
+                    const password = document.getElementById("password").value;
+                    const errorDiv = document.getElementById("loginError");
+
+                    fetch("loginservlet", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/x-www-form-urlencoded",
+                        },
+                        body: `dni=${encodeURIComponent(dni)}&password=${encodeURIComponent(password)}`
+                    })
+                            .then(response => {
+                                if (!response.ok) {
+                                    throw new Error("Credenciales inválidas");
+                                }
+                                return response.json();
+                            })
+                            .then(data => {
+                                console.log("✅ TOKEN JWT:", data.token); // Mostrar en consola
+                                localStorage.setItem("jwt", data.token); // Opcional: guardar token
+                                window.location.href = "principal.html";
+                            })
+                            .catch(error => {
+                                errorDiv.textContent = error.message;
+                            });
+                });
+            </script>
+
     </body>
+
+
 </html>

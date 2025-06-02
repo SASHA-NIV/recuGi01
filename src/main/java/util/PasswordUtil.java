@@ -16,7 +16,7 @@ public class PasswordUtil {
     public static void main(String[] args) {
         String clave1 = "1234";
         String clave2 = "1234";
-        String claveHash = PasswordUtil.hashPassword("4321");
+        String claveHash = PasswordUtil.hashPassword("1234");
         
         String resultado1 = PasswordUtil.hashPassword(clave1);
         String resultado2 = PasswordUtil.hashPassword(clave2);

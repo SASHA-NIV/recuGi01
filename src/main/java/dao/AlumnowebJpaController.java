@@ -12,6 +12,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Query;
 import javax.persistence.EntityNotFoundException;
+import javax.persistence.Persistence;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 
@@ -24,7 +25,7 @@ public class AlumnowebJpaController implements Serializable {
     public AlumnowebJpaController(EntityManagerFactory emf) {
         this.emf = emf;
     }
-    private EntityManagerFactory emf = null;
+    private EntityManagerFactory emf = Persistence.createEntityManagerFactory("com.mycompany_racuGi01_war_1.0-SNAPSHOTPU");
 
     public EntityManager getEntityManager() {
         return emf.createEntityManager();
@@ -133,5 +134,17 @@ public class AlumnowebJpaController implements Serializable {
             em.close();
         }
     }
+    
+    public Alumnoweb findByDni(String dni) {
+    EntityManager em = getEntityManager();
+    try {
+        List<Alumnoweb> result = em.createQuery("SELECT a FROM alumnoweb a WHERE a.ndniEstdWeb = :dni", Alumnoweb.class)
+            .setParameter("dni", dni)
+            .getResultList();
+        return result.isEmpty() ? null : result.get(0);
+    } finally {
+        em.close();
+    }
+}
     
 }
