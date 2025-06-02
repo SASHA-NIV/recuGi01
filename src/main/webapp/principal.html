@@ -22,6 +22,11 @@
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
+        <!-- jQuery -->
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+        <!-- Bootstrap Bundle JS (incluye Popper) -->
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
     </head>
 
     <body id="page-top">
@@ -364,32 +369,23 @@
                     <!-- Begin Page Content -->
                     <div class="container-fluid">
 
-                        <div class="card shadow mb-4">
-                            <div class="card-header py-3">
-                                <h6 class="m-0 font-weight-bold text-primary">Lista de Alumnos</h6>
-                            </div>
-                            <div class="card-body">
-                                <div class="table-responsive">
-                                    <table class="table table-bordered" id="tablaAlumnos" width="100%" cellspacing="0">
-                                        <thead>
-                                            <tr>
-                                                <th>ID</th>
-                                                <th>DNI</th>
-                                                <th>Apellido Paterno</th>
-                                                <th>Apellido Materno</th>
-                                                <th>Nombres</th>
-                                                <th>Fecha Nacimiento</th>
-                                                <th>Login</th>
-                                                <th>Acciones</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="cuerpoTabla">
-                                            <!-- Aquí se insertarán las filas -->
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
+                        <h3>Listado de Alumnos</h3>
+                        <table class="table table-bordered" id="tablaAlumnos">
+                            <thead>
+                                <tr>
+                                    <th>Código</th>
+                                    <th>DNI</th>
+                                    <th>Apellido Paterno</th>
+                                    <th>Apellido Materno</th>
+                                    <th>Nombres</th>
+                                    <th>Fecha Nacimiento</th>
+                                    <th>Login</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cuerpoTabla"></tbody>
+                        </table>
+                        <div id="error" class="text-danger mt-3"></div>
 
                     </div>
                     <!-- /.container-fluid -->
@@ -438,6 +434,50 @@
             </div>
         </div>
 
+        <!-- Modal de edición -->
+        <div class="modal fade" id="modalEditar" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <form id="formEditar">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Editar Alumno</h5>
+                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <input type="hidden" id="editCodi">
+                            <div class="form-group">
+                                <label>DNI</label>
+                                <input type="text" id="editDni" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Apellido Paterno</label>
+                                <input type="text" id="editAppa" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Apellido Materno</label>
+                                <input type="text" id="editApma" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Nombre</label>
+                                <input type="text" id="editNombre" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Fecha Nacimiento</label>
+                                <input type="date" id="editFecha" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Login</label>
+                                <input type="text" id="editLogin" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                            <button type="button" class="btn btn-secondary" id="btnCancelarModal">Cancelar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
 
 
         <!-- Bootstrap core JavaScript-->
@@ -461,6 +501,110 @@
             fetch("sessiontoken")
                     .then(res => res.text())
                     .then(token => console.log("TOKEN JWT:", token));
+        </script>
+
+        <script>
+            let alumnos = []; // se llena al listar
+            // 1. Obtener lista de alumnos desde el servlet
+            fetch("listaralumnos")
+                    .then(response => {
+                        if (!response.ok)
+                            throw new Error("Acceso denegado (token inválido)");
+                        return response.json();
+                    })
+                    .then(data => {
+                        alumnos = data; // ✅ Guardamos para poder editar
+                        console.log("Alumnos cargados:", alumnos);
+                        const cuerpo = document.getElementById("cuerpoTabla");
+                        cuerpo.innerHTML = "";
+                        alumnos.forEach(al => {
+                            const fila = `
+          <tr>
+            <td>${al.codiEstdWeb}</td>
+            <td>${al.ndniEstdWeb}</td>
+            <td>${al.appaEstdWeb}</td>
+            <td>${al.apmaEstdWeb}</td>
+            <td>${al.nombEstdWeb}</td>
+            <td>${al.fechNaciEstdWeb}</td>
+            <td>${al.logiEstd}</td>
+            <td>
+              <button class="btn btn-sm btn-warning btnEditar" data-id="${al.codiEstdWeb}">Editar</button>
+            </td>
+          </tr>
+        `;
+                            cuerpo.innerHTML += fila;
+                        });
+                    })
+                    .catch(err => {
+                        document.getElementById("error").textContent = err.message;
+                    });
+            document.addEventListener("click", function (e) {
+                if (e.target.classList.contains("btnEditar")) {
+                    const id = e.target.getAttribute("data-id");
+                    abrirModalEditar(id);
+                }
+            });
+        </script>
+
+        <script>
+            function abrirModalEditar(codigo) {
+                console.log("Código recibido:", codigo);
+                const alumno = alumnos.find(a => a.codiEstdWeb == codigo);
+                console.log("Alumno encontrado:", alumno);
+
+                if (!alumno) {
+                    alert("Alumno no encontrado.");
+                    return;
+                }
+
+                document.getElementById("editCodi").value = alumno.codiEstdWeb;
+                document.getElementById("editDni").value = alumno.ndniEstdWeb;
+                document.getElementById("editAppa").value = alumno.appaEstdWeb;
+                document.getElementById("editApma").value = alumno.apmaEstdWeb;
+                document.getElementById("editNombre").value = alumno.nombEstdWeb;
+                document.getElementById("editFecha").value = alumno.fechNaciEstdWeb.split("/").reverse().join("-");
+                document.getElementById("editLogin").value = alumno.logiEstd;
+
+                $('#modalEditar').modal('show');
+            }
+
+            // 4. Guardar cambios al hacer submit del formulario de edición
+            document.getElementById("formEditar").addEventListener("submit", function (e) {
+                e.preventDefault();
+
+                const datos = {
+                    codi: document.getElementById("editCodi").value,
+                    dni: document.getElementById("editDni").value,
+                    appa: document.getElementById("editAppa").value,
+                    apma: document.getElementById("editApma").value,
+                    nomb: document.getElementById("editNombre").value,
+                    fecha: document.getElementById("editFecha").value,
+                    logi: document.getElementById("editLogin").value
+                };
+
+                fetch("editaralumno", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded"
+                    },
+                    body: new URLSearchParams(datos)
+                })
+                        .then(res => res.text())
+                        .then(msg => {
+                            alert(msg);
+                            $('#modalEditar').modal('hide');
+                            setTimeout(() => location.reload(), 1000);
+                        })
+                        .catch(err => {
+                            alert("❌ Error al guardar cambios.");
+                        });
+            });
+
+            // Botón "Cancelar" – cerrar el modal manualmente
+            document.getElementById("btnCancelarModal").addEventListener("click", function () {
+                document.activeElement.blur(); // ← soluciona la advertencia
+                $('#modalEditar').modal('hide');
+            });
         </script>
     </body>
 
